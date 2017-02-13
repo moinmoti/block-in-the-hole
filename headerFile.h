@@ -12,6 +12,8 @@
 #include <glm/gtx/transform.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
+using namespace std;
+
 struct VAO {
   GLuint VertexArrayID;
   GLuint VertexBuffer;
@@ -22,6 +24,61 @@ struct VAO {
   int NumVertices;
 };
 typedef struct VAO VAO;
+
+typedef struct ENTITY {
+  string id;
+  float x, y, z;
+  float height, width, depth;
+  float radius;
+  float x_angle;
+  float z_angle;
+  bool x_rotation_status;
+  bool z_rotation_status;
+  float x_rotation_angle;
+  float z_rotation_angle;
+  string type;
+  string orientation;
+  int status;
+  VAO * object;
+}ENTITY;
+
+extern vector <ENTITY> Tile;
+extern ENTITY cuboid;
+
+typedef struct COLOR {
+  float r;
+  float g;
+  float b;
+}COLOR;
+
+extern COLOR grey;
+extern COLOR silver;
+extern COLOR sun;
+extern COLOR gold;
+extern COLOR coingold;
+extern COLOR red;
+extern COLOR lightgreen;
+extern COLOR darkgreen;
+extern COLOR black;
+extern COLOR blue;
+extern COLOR darkbrown;
+extern COLOR lightbrown;
+extern COLOR brown1;
+extern COLOR brown2;
+extern COLOR brown3;
+extern COLOR cratebrown;
+extern COLOR cratebrown1;
+extern COLOR cratebrown2;
+extern COLOR skyblue2;
+extern COLOR skyblue1;
+extern COLOR skyblue;
+extern COLOR cloudwhite;
+extern COLOR cloudwhite1;
+extern COLOR lightpink;
+extern COLOR darkpink;
+extern COLOR white;
+extern COLOR scorecolor;
+
 
 GLuint LoadShaders(const char * vertex_file_path,const char * fragment_file_path);
 static void error_callback(int error, const char* description)
@@ -37,13 +94,13 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods);
 void keyboardChar (GLFWwindow* window, unsigned int key);
 void mouseButton (GLFWwindow* window, int button, int action, int mods);
 void reshapeWindow (GLFWwindow* window, int width, int height);
-void createRectangle ();
-void createCam ();
-void createFloor ();
-void draw (GLFWwindow* window, float x, float y, float w, float h, int doM, int doV, int doP);
+void draw (GLFWwindow* window, int doM, int doV, int doP);
 GLFWwindow* initGLFW (int width, int height);
 void initGL (GLFWwindow* window, int width, int height);
 int main (int argc, char** argv);
-
+void createTile (float x, float y, float z, float height, float width, float depth, COLOR color, COLOR color2, COLOR color3, COLOR color4);
+void gridEngine();
+void createCuboid (float x, float y, float z, float height, float width, float depth, COLOR color, COLOR color2, COLOR color3, COLOR color4);
+void cuboidEngine();
 
 #endif
