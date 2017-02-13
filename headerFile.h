@@ -38,7 +38,7 @@ typedef struct ENTITY {
   float z_rotation_angle;
   string type;
   string orientation;
-  int status;
+  int state;
   VAO * object;
 }ENTITY;
 

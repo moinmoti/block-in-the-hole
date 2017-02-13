@@ -117,7 +117,7 @@ void createTile (float angle, float x, float y, float z, float height, float wid
   tile.width = width;
   tile.depth = depth;
   tile.object = object;
-  tile.status = 0;
+  tile.state = 0;
   Tile.push_back(tile);
 }
 
