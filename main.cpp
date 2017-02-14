@@ -18,6 +18,30 @@ int switch_j = 3;
 int victory_i = 7;
 int victory_j = 3;
 
+float eye_x,eye_y,eye_z;
+float target_x,target_y,target_z;
+int camera_follow=0;
+int camera_follow_adjust=0;
+int camera_top=0;
+int camera_fps=0;
+float camera_radius;
+float camera_fov=1.3;
+float fps_head_offset=0;
+float fps_head_offset_x=0;
+int camera_tower=1;
+int camera_helicopter=0;
+int camera_self=0;
+int orient_right=0;
+int orient_left=0;
+int orient_forward=0;
+int orient_backward=0;
+int mouse_click=0,right_mouse_click=0;
+int keyboard_press=0;
+double mouse_pos_x, mouse_pos_y;
+double prev_mouse_pos_x,prev_mouse_pos_y;
+int roundi=0;
+int partition=0;
+
 COLOR grey = {168.0/255.0,168.0/255.0,168.0/255.0};
 COLOR silver = {192.0/255.0,192.0/255.0,192.0/255.0};
 COLOR sun = {233.0/255.0,189.0/255.0,21.0/255.0};
@@ -62,12 +86,66 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods) 
 
   if (action == GLFW_RELEASE) {
     switch (key) {
-      case GLFW_KEY_C:
+      case GLFW_KEY_LEFT:
+      cuboid.x_rotation_status = 1;
+      cuboid.x_rotation_angle = -90;
       break;
-      case GLFW_KEY_P:
+      case GLFW_KEY_RIGHT:
+      cuboid.x_rotation_status = 1;
+      cuboid.x_rotation_angle = 90;
+      break;
+      case GLFW_KEY_UP:
+      cuboid.z_rotation_status = 1;
+      cuboid.z_rotation_angle = -90;
+      break;
+      case GLFW_KEY_DOWN:
+      cuboid.z_rotation_status = 1;
+      cuboid.z_rotation_angle = 90;
+      break;
+      case GLFW_KEY_C:
       break;
       case GLFW_KEY_X:
       // do something ..
+      break;
+      case GLFW_KEY_T:
+      camera_top=1;
+      camera_follow=0;
+      camera_fps=0;
+      camera_tower=0;
+      camera_self=0;
+      camera_helicopter=0;
+      break;
+      case GLFW_KEY_R:
+      camera_top=0;
+      camera_follow=0;
+      camera_fps=0;
+      camera_tower=1;
+      camera_self=0;
+      camera_helicopter=0;
+      break;
+      case GLFW_KEY_F:
+      camera_top=0;
+      camera_follow=1;
+      camera_fps=0;
+      camera_tower=0;
+      camera_self=0;
+      camera_helicopter=0;
+      break;
+      case GLFW_KEY_P:
+      camera_top=0;
+      camera_follow=0;
+      camera_fps=0;
+      camera_tower=0;
+      camera_self=0;
+      camera_helicopter=1;
+      break;
+      case GLFW_KEY_I:
+      camera_top=0;
+      camera_follow=0;
+      camera_fps=0;
+      camera_tower=0;
+      camera_self=1;
+      camera_helicopter=0;
       break;
       default:
       break;
@@ -92,20 +170,40 @@ void keyboardChar (GLFWwindow* window, unsigned int key) {
     quit(window);
     break;
     case 'a':
-    cuboid.x_rotation_status = 1;
-    cuboid.x_rotation_angle = -90;
+    if(camera_follow==1 || camera_self==1)
+    {
+      orient_left=1;
+      orient_right=0;
+      orient_backward=0;
+      orient_forward=0;
+    }
     break;
     case 'd':
-    cuboid.x_rotation_status = 1;
-    cuboid.x_rotation_angle = 90;
+    if(camera_follow==1 ||  camera_self==1)
+    {
+      orient_left=0;
+      orient_right=1;
+      orient_backward=0;
+      orient_forward=0;
+    }
     break;
     case 'w':
-    cuboid.z_rotation_status = 1;
-    cuboid.z_rotation_angle = -90;
+    if(camera_follow==1 ||camera_self==1)
+    {
+      orient_left=0;
+      orient_right=0;
+      orient_backward=0;
+      orient_forward=1;
+    }
     break;
     case 's':
-    cuboid.z_rotation_status = 1;
-    cuboid.z_rotation_angle = 90;
+    if(camera_follow==1 || camera_self==1)
+    {
+      orient_left=0;
+      orient_right=0;
+      orient_backward=1;
+      orient_forward=0;
+    }
     break;
     case 'r':
     rect_pos.z -= 0.1;
@@ -147,15 +245,26 @@ void keyboardChar (GLFWwindow* window, unsigned int key) {
 /* Executed when a mouse button is pressed/released */
 void mouseButton (GLFWwindow* window, int button, int action, int mods) {
   switch (button) {
-    case GLFW_MOUSE_BUTTON_RIGHT:
-    if (action == GLFW_RELEASE) {
+    case GLFW_MOUSE_BUTTON_LEFT:
+    if(action == GLFW_PRESS) {
+      mouse_click=1;
+      keyboard_press=0;
+      right_mouse_click=0;
     }
+    if(action == GLFW_RELEASE) mouse_click=0;
+    break;
+    case GLFW_MOUSE_BUTTON_RIGHT:
+    if(action == GLFW_PRESS) {
+      right_mouse_click=1;
+      keyboard_press=0;
+      mouse_click=0;
+    }
+    if(action == GLFW_RELEASE) right_mouse_click=0;
     break;
     default:
     break;
   }
 }
-
 
 /* Executed when window is resized to 'width' and 'height' */
 /* Modify the bounds of the screen here in glm::ortho or Field of View in glm::Perspective */
@@ -178,12 +287,174 @@ void reshapeWindow (GLFWwindow* window, int width, int height)
 }
 
 float camera_rotation_angle = 90;
+float angle;
 
 /* Render the scene with openGL */
 /* Edit this function according to your assignment */
 void draw (GLFWwindow* window, int doM, int doV, int doP)
 {
-  // int fbwidth, fbheight;
+  glUseProgram(programID);
+  if(camera_top==1)
+  {
+      eye_x = 0+cos(45*M_PI/180);
+      eye_z = 0;
+      //+sin(45*M_PI/180);
+      eye_y=20;
+      target_x=0;
+      target_y=0;
+      target_z=0;
+      /*eye_x = cuboid.x;
+      eye_z = cuboid.z;
+      eye_y= 10;
+      target_x = cuboid.x;
+      target_y = 0;
+      target_z = cuboid.z;*/
+      //fps_head_offset=0;
+      //fps_head_offset_x=0;
+      //camera_fov=1.3;
+  }
+  if(camera_tower==1)
+  {
+      eye_x = 0 ,
+      eye_y = 12;
+      eye_z = 15;
+      target_z = 0;
+      target_y = 0;
+      target_x = 0;
+  }
+  if(camera_follow==1)
+  {
+      if(orient_left==1)
+      {
+          eye_x = cuboid.x-5;
+          eye_y = cuboid.y;
+          eye_z = cuboid.z;
+          target_x = 1000;
+          target_y = cuboid.y;
+          target_z = cuboid.z;
+      }
+      else if(orient_right==1)
+      {
+          eye_x = cuboid.x+5;
+          eye_y = cuboid.y;
+          eye_z = cuboid.z;
+          target_x = -1000;
+          target_y = cuboid.y;
+          target_z = cuboid.z;
+      }
+      else if(orient_backward==1)
+      {
+          eye_x = cuboid.x;
+          eye_y = cuboid.y;
+          eye_z = cuboid.z+5;
+          target_x = cuboid.x;
+          target_y = cuboid.y;
+          target_z = -1000;
+      }
+      else
+      {
+          eye_x = cuboid.x;
+          eye_y = cuboid.y;
+          eye_z = cuboid.z-5;
+          target_x = cuboid.x;
+          target_y = cuboid.y;
+          target_z = 1000;
+      }
+  }
+  if(camera_self==1)
+  {
+      if(orient_left==1)
+      {
+          eye_x = cuboid.x-3;
+          eye_y = cuboid.y;
+          eye_z = cuboid.z;
+          target_x = -1000;
+          target_y = cuboid.y;
+          target_z = cuboid.z;
+      }
+      else if(orient_right==1)
+      {
+          eye_x = cuboid.x+3;
+          eye_y = cuboid.y;
+          eye_z = cuboid.z;
+          target_x = 1000;
+          target_y = cuboid.y;
+          target_z = cuboid.z;
+      }
+      else if(orient_backward==1)
+      {
+          eye_x = cuboid.x;
+          eye_y = cuboid.y;
+          eye_z = cuboid.z-3;
+          target_x = cuboid.x;
+          target_y = cuboid.y;
+          target_z = -1000;
+      }
+      else
+      {
+          eye_x = cuboid.x;
+          eye_y = cuboid.y;
+          eye_z = cuboid.z+3;
+          target_x = cuboid.x;
+          target_y = cuboid.y;
+          target_z = 1000;
+      }
+  }
+  glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+  if(camera_helicopter==1)
+  {
+      if(mouse_click==1)
+      {
+          angle=(mouse_pos_x)*360/600;
+          eye_x = 20*cos(angle*M_PI/180);
+          eye_z = 20*sin(angle*M_PI/180);
+          target_x = 0;
+          target_z = 0;
+          target_y = 0;
+      }
+      if(right_mouse_click==1)
+      {
+          angle = 90-(mouse_pos_y)*90/600;
+          eye_y = 20*sin(angle*M_PI/180);
+          target_x = 0;
+          target_z = 0;
+          target_y = 0;
+      }
+  }
+  prev_mouse_pos_x = mouse_pos_x;
+  prev_mouse_pos_y = mouse_pos_y;
+  if(camera_self==0 && camera_follow==0)
+  {
+      orient_forward=1;
+      orient_right=0;
+      orient_left=0;
+      orient_backward=0;
+  }
+  glm::vec3 eye(eye_x,eye_y,eye_z);
+  //glm::vec3 eye ( 8*sin(camera_rotation_angle*M_PI/180.0f), 3, 8*sin(camera_rotation_angle*M_PI/180.0f) );
+  // Target - Where is the camera looking at.  Don't change unless you are sure!!
+  glm::vec3 target (target_x,target_y,target_z);
+  // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
+  glm::vec3 up (0, 1, 0);
+
+  // Compute Camera matrix (view)
+  if(doV)
+Matrices.view = glm::lookAt(eye, target, up); // Fixed camera for 2D (ortho) in XY plane
+  else
+Matrices.view = glm::mat4(1.0f);
+
+  // Compute ViewProject matrix as view/camera might not be changed for this frame (basic scenario)
+  glm::mat4 VP;
+  if (doP)
+VP = Matrices.projection * Matrices.view;
+  else
+VP = Matrices.view;
+
+  // Send our transformation to the currently bound shader, in the "MVP" uniform
+  // For each model you render, since the MVP will be different (at least the M part)
+  glm::mat4 MVP;	// MVP = Projection * View * Model
+
+/*  // int fbwidth, fbheight;
   // glfwGetFramebufferSize(window, &fbwidth, &fbheight);
   // glViewport((int)(x*fbwidth), (int)(y*fbheight), (int)(w*fbwidth), (int)(h*fbheight));
 
@@ -215,7 +486,7 @@ void draw (GLFWwindow* window, int doM, int doV, int doP)
   // Send our transformation to the currently bound shader, in the "MVP" uniform
   // For each model you render, since the MVP will be different (at least the M part)
   glm::mat4 MVP;	// MVP = Projection * View * Model
-  /*
+
   // Load identity to model matrix
   Matrices.model = glm::mat4(1.0f);
 
