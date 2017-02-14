@@ -2,18 +2,18 @@
 
 bool gridMatrix[10][10] = {
   {1,1,1,1,1,0,1,1,0,0},
-  {0,0,0,1,1,1,1,1,0,0},
-  {0,0,1,1,1,1,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0},
-  {0,0,0,0,0,0,0,0,0,0},
+  {1,0,0,1,1,1,1,1,0,0},
+  {1,0,1,1,1,1,0,0,0,0},
+  {1,0,0,1,0,0,0,0,0,0},
+  {1,0,0,1,0,0,0,0,0,0},
   {0,0,0,1,1,0,0,0,0,0},
   {0,0,0,1,1,1,1,0,0,0},
-  {0,0,0,0,0,1,1,0,0,0},
+  {0,0,1,1,0,1,1,0,0,0},
   {0,0,0,1,1,1,1,1,0,0},
   {0,0,1,1,1,1,0,0,0,0}
 };
 
-void createTile (float angle, float x, float y, float z, float height, float width, float depth, COLOR color, COLOR color2, COLOR color3, COLOR color4) {
+void createTile (int state, string type, float x, float y, float z, float height, float width, float depth, COLOR color, COLOR color2, COLOR color3, COLOR color4) {
   float w=width/2,h=height/2,d=depth/2;
   static const GLfloat vertex_buffer_data [] = {
     -w, h, d,
@@ -117,7 +117,8 @@ void createTile (float angle, float x, float y, float z, float height, float wid
   tile.width = width;
   tile.depth = depth;
   tile.object = object;
-  tile.state = 0;
+  tile.type = type;
+  tile.state = state;
   Tile.push_back(tile);
 }
 
@@ -125,11 +126,16 @@ void gridEngine() {
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
       if (gridMatrix[i][j]) {
-        if ((i+j)%2) createTile(0, 2*(i-3), 0, 2*(j-3), 1, 2, 2, brown1, darkbrown, brown1, darkbrown);
-        else createTile(0, 2*(i-3), 0, 2*(j-3), 1, 2, 2, brown2, lightbrown, brown2, lightbrown);
+        if (i == 2 && j== 3) createTile(1, "switch", 2*(i-3), 0, 2*(j-3), 1, 2, 2, lightgreen, darkgreen, lightgreen, darkgreen);
+        else if (j == 3 && (i == 3 || i == 4)) createTile(0, "bridge", 2*(i-3), 0, 2*(j-3), 1, 2, 2, coingold, gold, coingold, gold);
+        else if (i == 7 && j == 3) createTile(1, "goal", 2*(i-3), 0, 2*(j-3), 1, 2, 2, black, darkgreen, black, darkgreen);
+        else if ((i+j)%2) createTile(1, "normal", 2*(i-3), 0, 2*(j-3), 1, 2, 2, brown1, darkbrown, brown1, darkbrown);
+        else createTile(1, "normal", 2*(i-3), 0, 2*(j-3), 1, 2, 2, brown2, lightbrown, brown2, lightbrown);
       }
     }
   }
+  gridMatrix[bridge1_i][bridge1_j] = 0;
+  gridMatrix[bridge2_i][bridge2_j] = 0;
 }
 
 int isEnd() {
@@ -156,4 +162,21 @@ int isEnd() {
     break;
   }
   return 0;
+}
+
+int checkVictory() {
+  if (cuboid.x == 2*(victory_i-3) && cuboid.z == 2*(victory_j-3)) {
+    return 1;
+  }
+  return 0;
+}
+
+void checkSwitch() {
+  if (cuboid.x == 2*(switch_i-3) && cuboid.z == 2*(switch_j-3)) {
+    gridMatrix[bridge1_i][bridge1_j] ^= 1;
+    gridMatrix[bridge2_i][bridge2_j] ^= 1;
+    for (auto i = Tile.begin(); i != Tile.end(); i++) {
+      if (i->type == "bridge") i->state ^= 1;
+    }
+  }
 }

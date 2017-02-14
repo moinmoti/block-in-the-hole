@@ -38,12 +38,22 @@ typedef struct ENTITY {
   float z_rotation_angle;
   string type;
   char orientation;
+  char prev_orientation;
+  char transition;
   int state;
   VAO * object;
 }ENTITY;
 
 extern vector <ENTITY> Tile;
 extern ENTITY cuboid;
+extern int bridge1_i;
+extern int bridge1_j;
+extern int bridge2_i;
+extern int bridge2_j;
+extern int switch_i;
+extern int switch_j;
+extern int victory_i;
+extern int victory_j;
 
 typedef struct COLOR {
   float r;
@@ -103,5 +113,7 @@ void gridEngine();
 void createCuboid (float x, float y, float z, float height, float width, float depth, COLOR color, COLOR color2, COLOR color3, COLOR color4);
 void cuboidEngine();
 int isEnd();
+void checkSwitch();
+int checkVictory();
 
 #endif
