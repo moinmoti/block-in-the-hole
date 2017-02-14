@@ -4,8 +4,8 @@ bool gridMatrix[10][10] = {
   {1,1,1,1,1,0,1,1,0,0},
   {0,0,0,1,1,1,1,1,0,0},
   {0,0,1,1,1,1,0,0,0,0},
-  {0,0,0,1,1,0,0,0,0,0},
-  {0,0,0,1,1,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0},
+  {0,0,0,0,0,0,0,0,0,0},
   {0,0,0,1,1,0,0,0,0,0},
   {0,0,0,1,1,1,1,0,0,0},
   {0,0,0,0,0,1,1,0,0,0},
@@ -125,9 +125,35 @@ void gridEngine() {
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
       if (gridMatrix[i][j]) {
-        if ((i+j)%2) createTile(0, 2*(i-3), 0, 2*(j-3), 1, 2, 2, brown1, brown1, brown1, brown1);
-        else createTile(0, 2*(i-3), 0, 2*(j-3), 1, 2, 2, brown2, brown2, brown2, brown2);
+        if ((i+j)%2) createTile(0, 2*(i-3), 0, 2*(j-3), 1, 2, 2, brown1, darkbrown, brown1, darkbrown);
+        else createTile(0, 2*(i-3), 0, 2*(j-3), 1, 2, 2, brown2, lightbrown, brown2, lightbrown);
       }
     }
   }
+}
+
+int isEnd() {
+  int i, i1, i2, j, j1, j2;
+  switch (cuboid.orientation) {
+    case 'x':
+    i1 = (cuboid.x - cuboid.height/4.0)/2.0 + 3.0;
+    i2 = (cuboid.x + cuboid.height/4.0)/2.0 + 3.0;
+    j = cuboid.z/2.0 + 3.0;
+    if (i1 < 0 || i2 < 0 || j < 0 || (!gridMatrix[i1][j] && !gridMatrix[i2][j])) return 1;
+    break;
+    case 'y':
+    i = cuboid.x/2.0 + 3.0;
+    j = cuboid.z/2.0 + 3.0;
+    if (!gridMatrix[i][j]) return 1;
+    break;
+    case 'z':
+    i = cuboid.x/2.0 + 3.0;
+    j1 = (cuboid.z - cuboid.height/4.0)/2.0 + 3.0;
+    j2 = (cuboid.z + cuboid.height/4.0)/2.0 + 3.0;
+    if (i < 0 || j1 < 0 || j2 < 0 || (!gridMatrix[i][j1] && !gridMatrix[i][j2])) return 1;
+    break;
+    default:
+    break;
+  }
+  return 0;
 }

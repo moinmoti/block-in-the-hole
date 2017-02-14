@@ -107,10 +107,10 @@ void createCuboid (float x, float y, float z, float height, float width, float d
   cuboid.x_rotation_angle = 0;
   cuboid.z_rotation_angle = 0;
   cuboid.state = 0;
-  cuboid.orientation = "y_side";
+  cuboid.orientation = 'y';
   cuboid.object = object;
 }
 
 void cuboidEngine() {
-  createCuboid(Tile[0].x, Tile[0].y+2.5, Tile[0].z, 4, 2, 2, silver, silver, silver, silver);
+  createCuboid(Tile[0].x, Tile[0].y+2.5, Tile[0].z, 4, 2, 2, silver, grey, silver, grey);
 }

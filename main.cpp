@@ -185,7 +185,7 @@ void draw (GLFWwindow* window, int doM, int doV, int doP)
   glUseProgram(programID);
 
   // Eye - Location of camera. Don't change unless you are sure!!
-  glm::vec3 eye (-8, 12, 8);
+  glm::vec3 eye (-4, 12, 12);
   // Target - Where is the camera looking at.  Don't change unless you are sure!!
   glm::vec3 target (0, 0, 0);
   // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
@@ -257,50 +257,65 @@ void draw (GLFWwindow* window, int doM, int doV, int doP)
 
   Matrices.model = glm::mat4(1.0f);
   glm::mat4 translateObject = glm::translate(glm::vec3(cuboid.x, cuboid.y, cuboid.z));
-  glm::mat4 rotateObject1 = glm::rotate((float)(cuboid.x_angle*M_PI/180.0f), glm::vec3(0,0,1));
-  glm::mat4 rotateObject2 = glm::rotate((float)(cuboid.z_angle*M_PI/180.0f), glm::vec3(1,0,0));
-  if (cuboid.state) Matrices.model *= translateObject*rotateObject1*rotateObject2;
-  else Matrices.model *= translateObject*rotateObject2*rotateObject1;
+  glm::mat4 rotateObject;
+  switch (cuboid.orientation) {
+    case 'x':
+    rotateObject = glm::rotate((float)(cuboid.x_angle*M_PI/180.0f), glm::vec3(0,0,1));
+    Matrices.model *= translateObject*rotateObject;
+    break;
+    case 'z':
+    rotateObject = glm::rotate((float)(cuboid.z_angle*M_PI/180.0f), glm::vec3(1,0,0));
+    Matrices.model *= translateObject*rotateObject;
+    break;
+    default:
+    Matrices.model *= translateObject;
+    break;
+  }
+  // glm::mat4 rotateObject2 = glm::rotate((float)(cuboid.z_angle*M_PI/180.0f), glm::vec3(1,0,0));
+  // glm::mat4 rotateObject = glm::rotate((float)(cuboid.x_angle*M_PI/180.0f), glm::vec3(0,0,1));
+  // Matrices.model *= translateObject*rotateObject;
+// if (cuboid.state) Matrices.model *= translateObject*rotateObject1*rotateObject2;
+  // else Matrices.model *= translateObject*rotateObject2*rotateObject1;
   if(doM) MVP = VP * Matrices.model;
   else MVP = VP;
   glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
   draw3DObject(cuboid.object);
 
-  if (cuboid.orientation == "y_side") {
+  if (cuboid.orientation == 'y') {
     if (cuboid.x_rotation_status) {
-      cuboid.x_angle = int(cuboid.x_angle + cuboid.x_rotation_angle) % 360;
+      cuboid.x_angle = (cuboid.x_rotation_angle > 0) ? 90 : -90;//int(cuboid.x_angle + cuboid.x_rotation_angle) % 360;
       cuboid.x += ((cuboid.x_rotation_angle > 0) ? 1 : -1)*(cuboid.height + cuboid.width)/2.0 ;
       cuboid.x_rotation_status = 0;
-      cuboid.orientation = "x_side";
+      cuboid.orientation = 'x';
       cuboid.y = 0.5 + cuboid.width/2.0;
-      cuboid.state = 0;
-      cout << "state:" << cuboid.state << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
+      // cuboid.state = 0;
+      cout << "state:" << cuboid.orientation << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
     }
     if (cuboid.z_rotation_status) {
-      cuboid.z_angle = int(cuboid.z_angle + cuboid.z_rotation_angle) % 360;
+      cuboid.z_angle = (cuboid.z_rotation_angle> 0) ? 90 : -90;//int(cuboid.z_angle + cuboid.z_rotation_angle) % 360;
       cuboid.z += ((cuboid.z_rotation_angle > 0) ? 1 : -1)*(cuboid.height + cuboid.width)/2.0;
       cuboid.z_rotation_status = 0;
-      cuboid.orientation = "z_side";
+      cuboid.orientation = 'z';
       cuboid.y = 0.5 + cuboid.width/2.0;
-      cuboid.state = 1;
-      cout << "state:" << cuboid.state << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
+      // cuboid.state = 1;
+      cout << "state:" << cuboid.orientation << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
     }
-  } else if (cuboid.orientation == "x_side") {
+  } else if (cuboid.orientation == 'x') {
     if (cuboid.x_rotation_status) {
       cuboid.x_angle = int(cuboid.x_angle + cuboid.x_rotation_angle) % 360;
       cuboid.x += ((cuboid.x_rotation_angle > 0) ? 1 : -1)*(cuboid.height + cuboid.width)/2.0;
       cuboid.x_rotation_status = 0;
       cuboid.y = 0.5 + cuboid.height/2.0;
-      cuboid.orientation = "y_side";
+      cuboid.orientation = 'y';
       // cuboid.state = 1;
-      cout << "state:" << cuboid.state << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
+      cout << "state:" << cuboid.orientation << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
     }
     if (cuboid.z_rotation_status) {
       cuboid.z_angle = int(cuboid.z_angle + cuboid.z_rotation_angle) % 360;
       cuboid.z += ((cuboid.z_rotation_angle > 0) ? 1 : -1)*cuboid.depth;
       cuboid.z_rotation_status = 0;
       // cuboid.state = 1;
-      cout << "state:" << cuboid.state << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
+      cout << "state:" << cuboid.orientation << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
     }
   } else {
     if (cuboid.x_rotation_status) {
@@ -308,18 +323,19 @@ void draw (GLFWwindow* window, int doM, int doV, int doP)
       cuboid.x += ((cuboid.x_rotation_angle > 0) ? 1 : -1)*cuboid.width;
       cuboid.x_rotation_status = 0;
       // cuboid.state = 0;
-      cout << "state:" << cuboid.state << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
+      cout << "state:" << cuboid.orientation << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
     }
     if (cuboid.z_rotation_status) {
       cuboid.z_angle = int(cuboid.z_angle + cuboid.z_rotation_angle) % 360;
       cuboid.z += ((cuboid.z_rotation_angle > 0) ? 1 : -1)*(cuboid.height + cuboid.depth)/2.0;
       cuboid.z_rotation_status = 0;
       cuboid.y = 0.5 + cuboid.height/2.0;
-      cuboid.orientation = "y_side";
+      cuboid.orientation = 'y';
       // cuboid.state = 0;
-      cout << "state:" << cuboid.state << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
+      cout << "state:" << cuboid.orientation << " | " << cuboid.x_angle << " | " << cuboid.z_angle << endl;
     }
   }
+  if (isEnd()) quit(window);
 }
 
 /* Initialise glfw window, I/O callbacks and the renderer to use */

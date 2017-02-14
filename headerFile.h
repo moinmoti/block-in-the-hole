@@ -37,7 +37,7 @@ typedef struct ENTITY {
   float x_rotation_angle;
   float z_rotation_angle;
   string type;
-  string orientation;
+  char orientation;
   int state;
   VAO * object;
 }ENTITY;
@@ -102,5 +102,6 @@ void createTile (float x, float y, float z, float height, float width, float dep
 void gridEngine();
 void createCuboid (float x, float y, float z, float height, float width, float depth, COLOR color, COLOR color2, COLOR color3, COLOR color4);
 void cuboidEngine();
+int isEnd();
 
 #endif
