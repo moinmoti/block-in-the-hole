@@ -17,19 +17,21 @@ int switch_i = 2;
 int switch_j = 3;
 int victory_i = 7;
 int victory_j = 3;
+vector <pair<int, int> > fragile_tiles;
+map <string, ENTITY> Led;
 
 float eye_x,eye_y,eye_z;
 float target_x,target_y,target_z;
 int camera_follow=0;
 int camera_follow_adjust=0;
-int camera_top=0;
-int camera_fps=0;
+// int camera_top=0;
+// int camera_fps=0;
 float camera_radius;
 float camera_fov=1.3;
 float fps_head_offset=0;
 float fps_head_offset_x=0;
-int camera_tower=1;
-int camera_helicopter=0;
+// int tower=1;
+int helicopter=0;
 int camera_self=0;
 int orient_right=0;
 int orient_left=0;
@@ -108,44 +110,41 @@ void keyboard (GLFWwindow* window, int key, int scancode, int action, int mods) 
       // do something ..
       break;
       case GLFW_KEY_T:
-      camera_top=1;
       camera_follow=0;
-      camera_fps=0;
-      camera_tower=0;
       camera_self=0;
-      camera_helicopter=0;
+      helicopter=0;
+      eye_x = 0+cos(45*M_PI/180);
+      eye_z = 0;
+      eye_y=20;
+      target_x=0;
+      target_y=0;
+      target_z=0;
       break;
       case GLFW_KEY_R:
-      camera_top=0;
       camera_follow=0;
-      camera_fps=0;
-      camera_tower=1;
       camera_self=0;
-      camera_helicopter=0;
+      helicopter=0;
+      eye_x = 0 ,
+      eye_y = 12;
+      eye_z = 15;
+      target_z = 0;
+      target_y = 0;
+      target_x = 0;
       break;
       case GLFW_KEY_F:
-      camera_top=0;
       camera_follow=1;
-      camera_fps=0;
-      camera_tower=0;
       camera_self=0;
-      camera_helicopter=0;
+      helicopter=0;
       break;
       case GLFW_KEY_P:
-      camera_top=0;
       camera_follow=0;
-      camera_fps=0;
-      camera_tower=0;
       camera_self=0;
-      camera_helicopter=1;
+      helicopter=1;
       break;
       case GLFW_KEY_I:
-      camera_top=0;
       camera_follow=0;
-      camera_fps=0;
-      camera_tower=0;
       camera_self=1;
-      camera_helicopter=0;
+      helicopter=0;
       break;
       default:
       break;
@@ -170,39 +169,43 @@ void keyboardChar (GLFWwindow* window, unsigned int key) {
     quit(window);
     break;
     case 'a':
-    if(camera_follow==1 || camera_self==1)
-    {
-      orient_left=1;
-      orient_right=0;
-      orient_backward=0;
-      orient_forward=0;
+    if(camera_follow==1 || camera_self==1) {
+      eye_x = cuboid.x-((camera_follow) ? 5 : 3);
+      eye_y = cuboid.y;
+      eye_z = cuboid.z;
+      target_x = 1000;
+      target_y = cuboid.y;
+      target_z = cuboid.z;
     }
     break;
     case 'd':
-    if(camera_follow==1 ||  camera_self==1)
-    {
-      orient_left=0;
-      orient_right=1;
-      orient_backward=0;
-      orient_forward=0;
+    if(camera_follow==1 ||  camera_self==1) {
+      eye_x = cuboid.x+((camera_follow) ? 5 : 3);
+      eye_y = cuboid.y;
+      eye_z = cuboid.z;
+      target_x = -1000;
+      target_y = cuboid.y;
+      target_z = cuboid.z;
     }
     break;
     case 'w':
-    if(camera_follow==1 ||camera_self==1)
-    {
-      orient_left=0;
-      orient_right=0;
-      orient_backward=0;
-      orient_forward=1;
+    if(camera_follow==1 ||camera_self==1) {
+      eye_x = cuboid.x;
+      eye_y = cuboid.y;
+      eye_z = cuboid.z-((camera_follow) ? 5 : 3);
+      target_x = cuboid.x;
+      target_y = cuboid.y;
+      target_z = 1000;
     }
     break;
     case 's':
-    if(camera_follow==1 || camera_self==1)
-    {
-      orient_left=0;
-      orient_right=0;
-      orient_backward=1;
-      orient_forward=0;
+    if(camera_follow==1 || camera_self==1) {
+      eye_x = cuboid.x;
+      eye_y = cuboid.y;
+      eye_z = cuboid.z+((camera_follow) ? 5 : 3);
+      target_x = cuboid.x;
+      target_y = cuboid.y;
+      target_z = -1000;
     }
     break;
     case 'r':
@@ -294,179 +297,36 @@ float angle;
 void draw (GLFWwindow* window, int doM, int doV, int doP)
 {
   glUseProgram(programID);
-  if(camera_top==1)
-  {
-      eye_x = 0+cos(45*M_PI/180);
-      eye_z = 0;
-      //+sin(45*M_PI/180);
-      eye_y=20;
-      target_x=0;
-      target_y=0;
-      target_z=0;
-      /*eye_x = cuboid.x;
-      eye_z = cuboid.z;
-      eye_y= 10;
-      target_x = cuboid.x;
-      target_y = 0;
-      target_z = cuboid.z;*/
-      //fps_head_offset=0;
-      //fps_head_offset_x=0;
-      //camera_fov=1.3;
-  }
-  if(camera_tower==1)
-  {
-      eye_x = 0 ,
-      eye_y = 12;
-      eye_z = 15;
+  glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
+  if(helicopter==1) {
+    if(mouse_click==1) {
+      angle=(mouse_pos_x)*360/600;
+      eye_x = 20*cos(angle*M_PI/180);
+      eye_z = 20*sin(angle*M_PI/180);
+      target_x = 0;
       target_z = 0;
       target_y = 0;
+    }
+    if(right_mouse_click==1) {
+      angle = 90-(mouse_pos_y)*90/600;
+      eye_y = 20*sin(angle*M_PI/180);
       target_x = 0;
-  }
-  if(camera_follow==1)
-  {
-      if(orient_left==1)
-      {
-          eye_x = cuboid.x-5;
-          eye_y = cuboid.y;
-          eye_z = cuboid.z;
-          target_x = 1000;
-          target_y = cuboid.y;
-          target_z = cuboid.z;
-      }
-      else if(orient_right==1)
-      {
-          eye_x = cuboid.x+5;
-          eye_y = cuboid.y;
-          eye_z = cuboid.z;
-          target_x = -1000;
-          target_y = cuboid.y;
-          target_z = cuboid.z;
-      }
-      else if(orient_backward==1)
-      {
-          eye_x = cuboid.x;
-          eye_y = cuboid.y;
-          eye_z = cuboid.z+5;
-          target_x = cuboid.x;
-          target_y = cuboid.y;
-          target_z = -1000;
-      }
-      else
-      {
-          eye_x = cuboid.x;
-          eye_y = cuboid.y;
-          eye_z = cuboid.z-5;
-          target_x = cuboid.x;
-          target_y = cuboid.y;
-          target_z = 1000;
-      }
-  }
-  if(camera_self==1)
-  {
-      if(orient_left==1)
-      {
-          eye_x = cuboid.x-3;
-          eye_y = cuboid.y;
-          eye_z = cuboid.z;
-          target_x = -1000;
-          target_y = cuboid.y;
-          target_z = cuboid.z;
-      }
-      else if(orient_right==1)
-      {
-          eye_x = cuboid.x+3;
-          eye_y = cuboid.y;
-          eye_z = cuboid.z;
-          target_x = 1000;
-          target_y = cuboid.y;
-          target_z = cuboid.z;
-      }
-      else if(orient_backward==1)
-      {
-          eye_x = cuboid.x;
-          eye_y = cuboid.y;
-          eye_z = cuboid.z-3;
-          target_x = cuboid.x;
-          target_y = cuboid.y;
-          target_z = -1000;
-      }
-      else
-      {
-          eye_x = cuboid.x;
-          eye_y = cuboid.y;
-          eye_z = cuboid.z+3;
-          target_x = cuboid.x;
-          target_y = cuboid.y;
-          target_z = 1000;
-      }
-  }
-  glfwGetCursorPos(window, &mouse_pos_x, &mouse_pos_y);
-  if(camera_helicopter==1)
-  {
-      if(mouse_click==1)
-      {
-          angle=(mouse_pos_x)*360/600;
-          eye_x = 20*cos(angle*M_PI/180);
-          eye_z = 20*sin(angle*M_PI/180);
-          target_x = 0;
-          target_z = 0;
-          target_y = 0;
-      }
-      if(right_mouse_click==1)
-      {
-          angle = 90-(mouse_pos_y)*90/600;
-          eye_y = 20*sin(angle*M_PI/180);
-          target_x = 0;
-          target_z = 0;
-          target_y = 0;
-      }
+      target_z = 0;
+      target_y = 0;
+    }
   }
   prev_mouse_pos_x = mouse_pos_x;
   prev_mouse_pos_y = mouse_pos_y;
-  if(camera_self==0 && camera_follow==0)
-  {
-      orient_forward=1;
-      orient_right=0;
-      orient_left=0;
-      orient_backward=0;
+  if(camera_self==0 && camera_follow==0) {
+    orient_forward=1;
+    orient_right=0;
+    orient_left=0;
+    orient_backward=0;
   }
   glm::vec3 eye(eye_x,eye_y,eye_z);
   //glm::vec3 eye ( 8*sin(camera_rotation_angle*M_PI/180.0f), 3, 8*sin(camera_rotation_angle*M_PI/180.0f) );
   // Target - Where is the camera looking at.  Don't change unless you are sure!!
   glm::vec3 target (target_x,target_y,target_z);
-  // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
-  glm::vec3 up (0, 1, 0);
-
-  // Compute Camera matrix (view)
-  if(doV)
-Matrices.view = glm::lookAt(eye, target, up); // Fixed camera for 2D (ortho) in XY plane
-  else
-Matrices.view = glm::mat4(1.0f);
-
-  // Compute ViewProject matrix as view/camera might not be changed for this frame (basic scenario)
-  glm::mat4 VP;
-  if (doP)
-VP = Matrices.projection * Matrices.view;
-  else
-VP = Matrices.view;
-
-  // Send our transformation to the currently bound shader, in the "MVP" uniform
-  // For each model you render, since the MVP will be different (at least the M part)
-  glm::mat4 MVP;	// MVP = Projection * View * Model
-
-/*  // int fbwidth, fbheight;
-  // glfwGetFramebufferSize(window, &fbwidth, &fbheight);
-  // glViewport((int)(x*fbwidth), (int)(y*fbheight), (int)(w*fbwidth), (int)(h*fbheight));
-
-
-  // use the loaded shader program
-  // Don't change unless you know what you are doing
-  glUseProgram(programID);
-
-  // Eye - Location of camera. Don't change unless you are sure!!
-  glm::vec3 eye (-8, 12, 8);
-  // Target - Where is the camera looking at.  Don't change unless you are sure!!
-  glm::vec3 target (0, 0, 0);
   // Up - Up vector defines tilt of camera.  Don't change unless you are sure!!
   glm::vec3 up (0, 1, 0);
 
@@ -478,52 +338,12 @@ VP = Matrices.view;
 
   // Compute ViewProject matrix as view/camera might not be changed for this frame (basic scenario)
   glm::mat4 VP;
-  if (doP)
-  VP = Matrices.projection * Matrices.view;
-  else
-  VP = Matrices.view;
+  if (doP) VP = Matrices.projection * Matrices.view;
+  else VP = Matrices.view;
 
   // Send our transformation to the currently bound shader, in the "MVP" uniform
   // For each model you render, since the MVP will be different (at least the M part)
   glm::mat4 MVP;	// MVP = Projection * View * Model
-
-  // Load identity to model matrix
-  Matrices.model = glm::mat4(1.0f);
-
-  glm::mat4 translateRectangle = glm::translate (rect_pos);        // glTranslatef
-  glm::mat4 rotateRectangle = glm::rotate((float)(rectangle_rotation*M_PI/180.0f), glm::vec3(0,0,1));
-  Matrices.model *= (translateRectangle * rotateRectangle);
-  if(floor_rel)
-  Matrices.model = Matrices.model * glm::translate(floor_pos);
-  if(doM)
-  MVP = VP * Matrices.model;
-  else
-  MVP = VP;
-  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
-  // draw3DObject draws the VAO given to it using current MVP matrix
-  draw3DObject(rectangle);
-
-  // Load identity to model matrix
-  Matrices.model = glm::mat4(1.0f);
-
-  glm::mat4 translateCam = glm::translate(eye);
-  glm::mat4 rotateCam = glm::rotate((float)((90 - camera_rotation_angle)*M_PI/180.0f), glm::vec3(0,1,0));
-  Matrices.model *= (translateCam * rotateCam);
-  MVP = VP * Matrices.model;
-  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
-  // draw3DObject draws the VAO given to it using current MVP matrix
-  draw3DObject(cam);
-
-  Matrices.model = glm::translate(floor_pos);
-  MVP = VP * Matrices.model;
-  glUniformMatrix4fv(Matrices.MatrixID, 1, GL_FALSE, &MVP[0][0]);
-
-  // draw3DObject draws the VAO given to it using current MVP matrix
-  draw3DObject(floor_vao);
-  */
-
 
   for (auto i = Tile.begin(); i != Tile.end(); i++) {
     if (!i->state) continue;
@@ -702,6 +522,13 @@ void initGL (GLFWwindow* window, int width, int height)
   glClearColor (0.3f, 0.3f, 0.3f, 0.0f); // R, G, B, A
   glClearDepth (1.0f);
 
+  eye_x = 0 ,
+  eye_y = 12;
+  eye_z = 15;
+  target_z = 0;
+  target_y = 0;
+  target_x = 0;
+
   glEnable (GL_DEPTH_TEST);
   glDepthFunc (GL_LEQUAL);
 
@@ -713,6 +540,19 @@ void initGL (GLFWwindow* window, int width, int height)
 
 int main (int argc, char** argv)
 {
+  ISoundEngine* engine = createIrrKlangDevice();
+
+	if (!engine)
+	{
+		printf("Could not startup engine\n");
+	}
+
+	// To play a sound, we only to call play2D(). The second parameter
+	// tells the engine to play it looped.
+
+	// play some sound stream, looped
+	engine->play2D("irrKlang-64bit-1.5.0/media/welcome2.wav", false);
+
   int width = 600;
   int height = 600;
   rect_pos = glm::vec3(0, 0, 0);

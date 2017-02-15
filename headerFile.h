@@ -2,6 +2,7 @@
 #define headerFile
 
 #include <bits/stdc++.h>
+#include <irrKlang.h>
 
 #include <GL/glew.h>
 #include <GL/gl.h>
@@ -13,6 +14,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 using namespace std;
+using namespace irrklang;
 
 struct VAO {
   GLuint VertexArrayID;
@@ -41,11 +43,13 @@ typedef struct ENTITY {
   char prev_orientation;
   char transition;
   int state;
+  int status;
   VAO * object;
 }ENTITY;
 
 extern vector <ENTITY> Tile;
 extern ENTITY cuboid;
+extern map <string, ENTITY> Led;
 extern int bridge1_i;
 extern int bridge1_j;
 extern int bridge2_i;
@@ -54,6 +58,7 @@ extern int switch_i;
 extern int switch_j;
 extern int victory_i;
 extern int victory_j;
+extern vector <pair<int, int> > fragile_tiles;
 
 typedef struct COLOR {
   float r;

@@ -13,6 +13,8 @@ bool gridMatrix[10][10] = {
   {0,0,1,1,1,1,0,0,0,0}
 };
 
+
+
 void createTile (int state, string type, float x, float y, float z, float height, float width, float depth, COLOR color, COLOR color2, COLOR color3, COLOR color4) {
   float w=width/2,h=height/2,d=depth/2;
   static const GLfloat vertex_buffer_data [] = {
@@ -123,14 +125,31 @@ void createTile (int state, string type, float x, float y, float z, float height
 }
 
 void gridEngine() {
+  pair <int, int> tile1, tile2, tile3;
+  tile1.first = 0;
+  tile1.second = 2;
+  tile2.first = 0;
+  tile2.second = 6;
+  tile3.first = 1;
+  tile3.second = 3;
+  fragile_tiles.push_back(tile1);
+  fragile_tiles.push_back(tile2);
+  fragile_tiles.push_back(tile3);
   for (int i = 0; i < 10; i++) {
     for (int j = 0; j < 10; j++) {
       if (gridMatrix[i][j]) {
+        for (auto t = fragile_tiles.begin(); t != fragile_tiles.end(); t++) {
+          if (i == t->first && j == t->second) {
+            createTile(1, "fragile", 2*(i-3), 0, 2*(j-3), 1, 2, 2, red, black, red, black);
+            goto fragile;
+          }
+        }
         if (i == 2 && j== 3) createTile(1, "switch", 2*(i-3), 0, 2*(j-3), 1, 2, 2, lightgreen, darkgreen, lightgreen, darkgreen);
         else if (j == 3 && (i == 3 || i == 4)) createTile(0, "bridge", 2*(i-3), 0, 2*(j-3), 1, 2, 2, coingold, gold, coingold, gold);
         else if (i == 7 && j == 3) createTile(1, "goal", 2*(i-3), 0, 2*(j-3), 1, 2, 2, black, darkgreen, black, darkgreen);
         else if ((i+j)%2) createTile(1, "normal", 2*(i-3), 0, 2*(j-3), 1, 2, 2, brown1, darkbrown, brown1, darkbrown);
         else createTile(1, "normal", 2*(i-3), 0, 2*(j-3), 1, 2, 2, brown2, lightbrown, brown2, lightbrown);
+        fragile:;
       }
     }
   }
@@ -151,6 +170,9 @@ int isEnd() {
     i = cuboid.x/2.0 + 3.0;
     j = cuboid.z/2.0 + 3.0;
     if (!gridMatrix[i][j]) return 1;
+    for (auto t = fragile_tiles.begin(); t != fragile_tiles.end(); t++) {
+      if (i == t->first && j == t->second) return 1;
+    }
     break;
     case 'z':
     i = cuboid.x/2.0 + 3.0;
